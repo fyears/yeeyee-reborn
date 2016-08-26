@@ -1,12 +1,22 @@
-let gulp = require('gulp');
-let Mocha = require('mocha');
-let sourcemaps = require('gulp-sourcemaps');
-let babel = require('gulp-babel');
-let spawn = require('child_process').spawn;
+const path = require('path');
+const gulp = require('gulp');
+const Mocha = require('mocha');
+const sourcemaps = require('gulp-sourcemaps');
+const babel = require('gulp-babel');
+const spawn = require('child_process').spawn;
+const browserify = require('browserify');
+const buffer = require('vinyl-buffer');
+const rename = require('gulp-rename');
+const source = require('vinyl-source-stream');
 let node;
 
 gulp.task('clean', () => {
   spawn('rm', ['-rf', 'build/']);
+});
+
+gulp.task('front', ['clean'], () => {
+  return gulp.src('./src/{views,public}/**/*.{html,css}')
+    .pipe(gulp.dest('build/src/'));
 });
 
 gulp.task('babel', ['clean'], () => {
@@ -15,7 +25,22 @@ gulp.task('babel', ['clean'], () => {
     .pipe(gulp.dest('build/'));
 });
 
-gulp.task('server', ['babel'], () => {
+gulp.task('browserify', ['babel'], () => {
+  // https://scotch.io/tutorials/getting-started-with-browserify
+  const config = {
+    src: './build/src/public/js/main.js',
+    outputDir: './build/src/public/js/',
+    outputFile: 'bundle.js'
+  };
+  return browserify(config.src)
+    .bundle()
+    .pipe(source(config.src))
+    .pipe(buffer())
+    .pipe(rename(config.outputFile))
+    .pipe(gulp.dest(config.outputDir));
+})
+
+gulp.task('server', ['default'], () => {
   // https://gist.github.com/webdesserts/5632955
 
   if (node) {
@@ -36,7 +61,7 @@ gulp.task('watch', ['server'], () => {
   gulp.watch('test/**', ['server']);
 });
 
-gulp.task('test', ['babel'], () => {
+gulp.task('test', ['default'], () => {
   let testDir = './build/test';
   let mocha = new Mocha();
   require('fs')
@@ -55,8 +80,8 @@ gulp.task('test', ['babel'], () => {
   });
 });
 
-gulp.task('default', ['babel'], () => {
-  console.log('default gulp');
+gulp.task('default', ['browserify', 'babel', 'front'], () => {
+  console.log('The default gulp task compiles the source code and generates `./build`.');
 });
 
 process.on('exit', () => {

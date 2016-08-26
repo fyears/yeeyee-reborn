@@ -3,16 +3,17 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
+const mount = require('koa-mount');
+const logger = require('koa-logger');
+const serve = require('koa-static');
+const path = require('path');
 
 import User from './models/users';
 import Post from './models/posts';
 
 const app = new Koa();
-const routerApi = new Router({
-  prefix: '/api'
-});
-const logger = require('koa-logger');
 
+const routerApi = new Router();
 routerApi
   .get('/', async (ctx, next) => {
     ctx.body = 'Hello world API!';
@@ -98,11 +99,12 @@ routerApi
     });
   });
 
+
 app
   .use(logger())
   .use(bodyParser())
-  .use(routerApi.routes())
-  .use(routerApi.allowedMethods());
+  .use(mount('/api', routerApi.routes()))
+  .use(mount('/', serve(path.join(__dirname, './public/'))));
 
 
 if (!module.parent) {
