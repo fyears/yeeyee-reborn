@@ -1,63 +1,138 @@
+let UsersDB = {
+  id: {
+    u1: {
+      email: 'u1@example.com',
+      defaultCampus: 'ucb',
+      password: '123',
+      altEmails: [],
+      dateCreated: `${Date.now()}`
+    },
+    u2: {
+      email: 'u2@example.org',
+      defaultCampus: 'harvard',
+      password: '456',
+      altEmails: [],
+      dateCreated: `${Date.now()}`
+    }
+  },
+  email: {
+    'u1@example.com': 'u1',
+    'u2@example.org': 'u2'
+  }
+};
+let usersIDCnt = 3;
+
+
 export default class User {
-  constructor(user_id = '') {
-    this.user_id = user_id;
-    this.email = 'hello@example.com';
-    this.default_campus = 'univ';
-    this.alt_emails = [];
+  constructor(userID = '') {
+    let user = UsersDB.id[userID];
+    this.userID = userID;
+    this.email = user.email;
+    this.defaultCampus = user.defaultCampus;
+    this.altEmails = user.altEmails;
+    this.dateCreated = user.dateCreated;
   }
 
-  static from_email(email = '') {
+  static fromEmail(email = '') {
     return new Promise((resolve, reject) => {
       if (email.indexOf('@') == -1 || email.indexOf('.') == -1) {
-        reject(new UserException('email not found'));
+        return reject(new UserException('email invalid'));
       }
       try {
-        let user_id = 'u1';
-        let user = new User(user_id);
-        resolve(user);
+        let userID = UsersDB.email[email];
+        let user = new User(userID);
+        return resolve(user);
       } catch (error) {
-        reject(error);
+        return reject(error);
       }
     });
   }
 
-  static from_id(user_id = '') {
+  static fromID(userID = '') {
     return new Promise((resolve, reject) => {
       try {
-        let user = new User(user_id);
-        resolve(user);
+        let user = new User(userID);
+        return resolve(user);
       } catch (error) {
-        reject(error);
+        return reject(error);
       }
     });
   }
 
-  static from_auth_hash(hash_val = '') {
+  static fromAuthHash(hashVal = '') {
     return new Promise((resolve, reject) => {
-      if (hash_val.length <= 0) {
-        reject(new UserException('hash value not correct'));
+      if (hashVal.length <= 0) {
+        return reject(new UserException('hash value not correct'));
       }
       try {
-        let user_id = 'u1';
-        let user = new User(user_id);
-        resolve(user);
+        let userID = 'u1';
+        let user = new User(userID);
+        return resolve(user);
       } catch (error) {
-        reject(error);
+        return reject(error);
       }
     });
+  }
+
+  static createUser({
+      email = '',
+      password = '',
+      campusID = ''
+    } = {}) {
+    return new Promise((resolve, reject) => {
+      if (UsersDB.email[email]) {
+        return reject(new UserException('user already exist'));
+      }
+      if (email.indexOf('@') == -1 || email.indexOf('.') == -1) {
+        return reject(new UserException('email invalid'));
+      }
+      let userID = `u${usersIDCnt}`;
+      let dateCreated = `${Date.now()}`;
+      let altEmails = [];
+      campusID = campusID === ''? 'ucsd': campusID;
+      UsersDB.id[userID] = {
+        email: email,
+        defaultCampus: campusID,
+        password: password,
+        altEmails: altEmails,
+        dateCreated: dateCreated
+      }
+      UsersDB.email[email] = userID;
+      usersIDCnt += 1;
+      return resolve(UsersDB);
+    });
+  }
+
+  validPassword(password = '') {
+    res = true;
+    if (password !== this.password) {
+      res = false;
+    }
+    
+    return new Promise((resolve, reject) => {
+      if (res) {
+        return resolve(this);
+      } else {
+        return reject(new UserException('password invalid'));
+      }
+    });
+  }
+
+  getInfo(showID = false) {
+    let res = {
+      userID: this.userID,
+      email: this.email,
+      defaultCampus: this.defaultCampus,
+      dateCreated: this.dateCreated
+    }
+    if (!showID) {
+      delete res.userID;
+    }
+    return res;
   }
 
   toString() {
-    return JSON.stringify(this.get_info(), null, '  ');
-  }
-
-  get_info() {
-    return {
-      'user_id': this.user_id,
-      'email': this.email,
-      'default_campus': this.default_campus,
-      'date_created': `${Date.now()}`
-    }
+    return JSON.stringify(this.getInfo(), null, '  ');
   }
 
 }

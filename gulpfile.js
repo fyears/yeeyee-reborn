@@ -37,15 +37,15 @@ gulp.task('watch', ['server'], () => {
 });
 
 gulp.task('test', ['babel'], () => {
-  let test_dir = './build/test';
+  let testDir = './build/test';
   let mocha = new Mocha();
   require('fs')
-    .readdirSync(test_dir)
+    .readdirSync(testDir)
     .filter(file => {
       return file.substr(-3) === '.js';
     })
     .forEach(file => {
-      mocha.addFile(require('path').join(test_dir, file));
+      mocha.addFile(require('path').join(testDir, file));
     });
 
   let m = mocha.run();
