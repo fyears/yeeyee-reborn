@@ -79,9 +79,19 @@ routerApi
     let reqInfo = ctx.request.body;
     let email = reqInfo.email;
     let password = reqInfo.password;
+    let expand = true;
+    if (reqInfo.expand) {
+      if (reqInfo.expand === 'false' || reqInfo.expand === 'False' || reqInfo.expand === 'f') {
+        expand = false;
+      }
+    }
+    
     User.fromEmail(email)
       .then(user => {
-        return Post.getPostsListOfUser(user.userID);
+        return Post.getPostsListOfUser({
+          userID: user.userID,
+          expand: expand
+        });
       }).then(postsList => {
         ctx.body = {
           status: 'ok',

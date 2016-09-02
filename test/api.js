@@ -146,7 +146,8 @@ describe('get the whole post list of user', () => {
       .get('/api/posts')
       .send({
         email: 'u1@example.com',
-        password: '123'
+        password: '123',
+        expand: 'false'
       })
       .expect(200)
       .expect({

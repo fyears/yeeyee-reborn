@@ -125,11 +125,21 @@ export default class Post {
     });
   }
 
-  static getPostsListOfUser(userID) {
+  static getPostsListOfUser({
+      userID = '',
+      expand = true
+    } = {}) {
     return new Promise((resolve, reject) => {
       User.fromID(userID).then(user => {
         console.log(user);
         let res = PostsDB.uid[user.userID];
+        if (expand) {
+          let expandedRes = {};
+          res.forEach(x => {
+            expandedRes[x] = PostsDB.pid[x];
+          });
+          res = expandedRes;
+        }
         return resolve(res);
       }, error => {
         return reject(error);

@@ -1,4 +1,4 @@
 {
   "presets": ["es2015", "react"],
-  "plugins": ["transform-async-to-generator", "transform-runtime"]
+  "plugins": ["transform-async-to-generator", "transform-runtime", "transform-class-properties"]
 }
